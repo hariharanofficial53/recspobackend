@@ -202,4 +202,19 @@ router.post('/:id/reject', protect, async (req, res) => {
   }
 });
 
+// ─── DELETE /api/teams/:id (Admin delete team) ─────────────────────────────────
+router.delete('/:id', protect, async (req, res) => {
+  if (!req.team || !req.team.isAdmin) {
+    return res.status(403).json({ error: 'Access denied. Only administrators can delete teams.' });
+  }
+  try {
+    const team = await Team.findByIdAndDelete(req.params.id);
+    if (!team) return res.status(404).json({ error: 'Team not found.' });
+    res.json({ message: 'Team deleted successfully.' });
+  } catch (err) {
+    console.error('Delete team error:', err);
+    res.status(500).json({ error: 'Server error during team deletion.' });
+  }
+});
+
 module.exports = router;
