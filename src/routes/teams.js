@@ -33,6 +33,9 @@ cloudinary.config({
 
 // ─── Ownership guard ──────────────────────────────────────────────────────────
 const ownsTeam = (req, res, next) => {
+  if (req.team && req.team.isAdmin) {
+    return next();
+  }
   if (req.team._id.toString() !== req.params.id) {
     return res.status(403).json({ error: 'Access denied. You can only manage your own team.' });
   }

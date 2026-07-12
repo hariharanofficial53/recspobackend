@@ -5,6 +5,7 @@ const TeamMemberSchema = new mongoose.Schema({
   name:   { type: String, required: true, trim: true },
   year:   { type: String, required: true, trim: true },   // e.g. "3rd Year"
   number: { type: String, required: true, trim: true },   // jersey / contact
+  sport:  { type: String, required: true, trim: true },   // Sport category e.g. "Cricket"
 }, { _id: true, timestamps: false });
 
 const TeamSchema = new mongoose.Schema({

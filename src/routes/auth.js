@@ -23,7 +23,9 @@ router.post(
       }),
     body('leaderPhone').trim().notEmpty().withMessage('Phone number is required'),
     body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
-    body('selectedSports').isArray({ min: 1 }).withMessage('Select at least one sport'),
+    body('selectedSports')
+      .isArray({ min: 1, max: 2 })
+      .withMessage('You can register for a minimum of 1 and maximum of 2 sports.'),
   ],
   async (req, res) => {
     const errors = validationResult(req);
@@ -107,6 +109,32 @@ router.post(
     }
   }
 );
+
+// ─── POST /api/auth/admin-login ───────────────────────────────────────────────
+router.post('/admin-login', (req, res) => {
+  const { username, password } = req.body;
+  if (!username || !password) {
+    return res.status(400).json({ error: 'Please enter both username and password' });
+  }
+
+  const normalizedUser = username.trim().toLowerCase();
+  const normalizedPass = password.trim();
+
+  if (normalizedUser === 'admin' && normalizedPass === 'admin') {
+    const token = jwt.sign(
+      { id: 'admin', role: 'admin' },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRES_IN || '1d' }
+    );
+    return res.json({
+      message: 'Admin login successful.',
+      token,
+      admin: { username: 'admin' }
+    });
+  } else {
+    return res.status(401).json({ error: 'Invalid admin credentials.' });
+  }
+});
 
 // ─── GET /api/auth/me ─────────────────────────────────────────────────────────
 router.get('/me', protect, (req, res) => {

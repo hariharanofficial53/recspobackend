@@ -11,6 +11,11 @@ const protect = async (req, res, next) => {
     const token = authHeader.split(' ')[1];
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
+    if (decoded.role === 'admin') {
+      req.team = { isAdmin: true, _id: 'admin', teamName: 'Admin' };
+      return next();
+    }
+
     const team = await Team.findById(decoded.id);
     if (!team) {
       return res.status(401).json({ error: 'Team not found. Token invalid.' });
