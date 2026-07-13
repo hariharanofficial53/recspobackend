@@ -18,6 +18,14 @@ const memberValidation = [
   body('sport').trim().notEmpty().withMessage('Sport category is required'),
 ];
 
+const SPORT_LIMITS = {
+  'cricket': 15,
+  'football': 8,
+  'kho kho': 12,
+  'shuttle': 2,
+  'badminton': 2,
+};
+
 // ─── GET /api/teams/:id/members ───────────────────────────────────────────────
 router.get('/', protect, ownsTeam, async (req, res) => {
   try {
@@ -42,6 +50,18 @@ router.post('/', protect, ownsTeam, memberValidation, async (req, res) => {
   try {
     const team = await Team.findById(req.params.id);
     if (!team) return res.status(404).json({ error: 'Team not found.' });
+
+    // 0. Check member limit for the selected sport category
+    const sportKey = trimmedSport.toLowerCase();
+    const limit = SPORT_LIMITS[sportKey];
+    if (limit !== undefined) {
+      const currentCount = team.members.filter(m => m.sport && m.sport.toLowerCase() === sportKey).length;
+      if (currentCount >= limit) {
+        return res.status(400).json({
+          error: `Cannot register member. The limit for ${trimmedSport} is ${limit} members.`
+        });
+      }
+    }
 
     // 1. Check duplicate name in this team for this sport
     const hasDuplicateName = team.members.some(
@@ -94,6 +114,20 @@ router.put('/:memberId', protect, ownsTeam, memberValidation, async (req, res) =
 
     const member = team.members.id(req.params.memberId);
     if (!member) return res.status(404).json({ error: 'Member not found.' });
+
+    // 0. Check member limit if the sport category is being changed
+    if (member.sport.toLowerCase() !== trimmedSport.toLowerCase()) {
+      const sportKey = trimmedSport.toLowerCase();
+      const limit = SPORT_LIMITS[sportKey];
+      if (limit !== undefined) {
+        const currentCount = team.members.filter(m => m.sport && m.sport.toLowerCase() === sportKey).length;
+        if (currentCount >= limit) {
+          return res.status(400).json({
+            error: `Cannot register member. The limit for ${trimmedSport} is ${limit} members.`
+          });
+        }
+      }
+    }
 
     // 1. Check duplicate name in this team for this sport (excluding current member)
     const hasDuplicateName = team.members.some(

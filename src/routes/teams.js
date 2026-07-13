@@ -91,7 +91,9 @@ router.put(
     const errors = validationResult(req);
     if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
-    const allowed = ['teamName', 'leaderName', 'leaderPhone', 'selectedSports', 'status'];
+    const allowed = req.team.isAdmin 
+      ? ['teamName', 'leaderName', 'leaderPhone', 'selectedSports', 'status']
+      : ['teamName', 'leaderPhone'];
     const updates = {};
     allowed.forEach((k) => { if (req.body[k] !== undefined) updates[k] = req.body[k]; });
 
