@@ -45,6 +45,9 @@ router.post(
         return res.status(409).json({ error: `A team with this ${field} already exists.` });
       }
 
+      // Generate a random 6-digit passcode directly on registration
+      const randomCode = Math.floor(100000 + Math.random() * 900000).toString();
+
       const team = await Team.create({
         teamName,
         leaderName,
@@ -52,7 +55,9 @@ router.post(
         leaderPhone,
         selectedSports,
         passwordHash: password, // pre-save hook will hash it
-        status: 'pending',
+        status: 'active',
+        paymentStatus: 'approved',
+        registrationCode: randomCode,
       });
 
       const token = signToken(team._id);
