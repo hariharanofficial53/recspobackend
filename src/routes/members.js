@@ -19,7 +19,7 @@ const memberValidation = [
 ];
 
 const SPORT_LIMITS = {
-  'cricket': 15,
+  'cricket': 13,
   'football': 8,
   'kho kho': 12,
   'shuttle': 2,

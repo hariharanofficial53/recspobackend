@@ -2,6 +2,7 @@ const router = require('express').Router();
 const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
 const Team = require('../models/Team');
+const SportConfig = require('../models/SportConfig');
 const protect = require('../middleware/auth');
 
 const signToken = (id) =>
@@ -36,6 +37,16 @@ router.post(
     const { teamName, leaderName, leaderEmail, leaderPhone, selectedSports, password } = req.body;
 
     try {
+      // Check if any selected sport is closed
+      const closedSportsConfigs = await SportConfig.find({
+        sportName: { $in: selectedSports },
+        isClosed: true
+      });
+      if (closedSportsConfigs.length > 0) {
+        const closedNames = closedSportsConfigs.map(c => c.sportName).join(', ');
+        return res.status(400).json({ error: `Registration is closed (slot full) for: ${closedNames}` });
+      }
+
       // Check duplicate email or team name
       const existing = await Team.findOne({
         $or: [{ leaderEmail: leaderEmail.toLowerCase() }, { teamName }],
